@@ -1,9 +1,6 @@
-START_FROM_SCRATCH = False
+START_FROM_SCRATCH = True
 
-from pickle import load
-from keras.preprocessing.text import Tokenizer
-from keras.preprocessing.sequence import pad_sequences
-from keras.utils.vis_utils import plot_model
+#from keras.utils.vis_utils import plot_model
 from keras.models import Model
 from keras.models import load_model
 from keras.layers import Input
@@ -15,21 +12,7 @@ from keras.layers.convolutional import Conv1D
 from keras.layers.convolutional import MaxPooling1D
 from keras.layers.merge import concatenate
 
-def load_dataset(filename):
-    return load(open(filename, 'rb'))
-
-def create_tokenizer(lines):
-    tokenizer = Tokenizer()
-    tokenizer.fit_on_texts(lines)
-    return tokenizer
-
-def max_length(lines):
-    return max([len(s.split()) for s in lines])
-
-def encode_text(tokenizer, lines, length):
-    encoded = tokenizer.texts_to_sequences(lines)
-    padded = pad_sequences(encoded, maxlen=length, padding='post')
-    return padded
+import util
 
 def define_model(length, vocab_size):
     inputs1 = Input(shape=(length,))
@@ -60,32 +43,32 @@ def define_model(length, vocab_size):
     model = Model(inputs=[inputs1, inputs2, inputs3], outputs=outputs)
     model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
     model.summary()
-    plot_model(model, show_shapes=True, to_file='multichannel.png')
+    #plot_model(model, show_shapes=True, to_file='multichannel.png')
 
     return model
 
 def print_data(lines):
-    for i in range(1,10):
+    for i in range(10):
         print(len(lines[i]))
         print(lines[i])
 
 
-trainLines, trainLabels = load_dataset('data/train.pkl')
+trainLines, trainLabels = util.load_dataset('data/train.pkl')
 trainLines = [' '.join(x) for x in trainLines]
 print(len(trainLines))
 print_data(trainLines)
-tokenizer = create_tokenizer(trainLines)
-length = max_length(trainLines)
+tokenizer = util.create_tokenizer(trainLines)
+length = util.max_length(trainLines)
 print('Max document length: %d' % length)
 vocab_size = len(tokenizer.word_index) + 1
 print('Vocabulary size: %d' % vocab_size)
-trainX = encode_text(tokenizer, trainLines, length)
+trainX = util.encode_text(tokenizer, trainLines, length)
 
 if START_FROM_SCRATCH:
     model = define_model(length, vocab_size)
 else:
     model = load_model('data/model.h5')
 
-model.fit([trainX, trainX, trainX], trainLabels, epochs=14, batch_size=16)
+model.fit([trainX, trainX, trainX], trainLabels, epochs=1, batch_size=160)
 model.save('data/model.h5')
 
