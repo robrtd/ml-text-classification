@@ -69,6 +69,6 @@ if START_FROM_SCRATCH:
 else:
     model = load_model('data/model.h5')
 
-model.fit([trainX, trainX, trainX], trainLabels, epochs=1, batch_size=160)
+model.fit([trainX, trainX, trainX], trainLabels, epochs=1, batch_size=16)
 model.save('data/model.h5')
 
