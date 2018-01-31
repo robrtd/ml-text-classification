@@ -12,6 +12,7 @@ import codecs
 # load doc into memory
 MAIL_INBOX_ = '/home/robert/Tng/mail/INBOX/'
 
+
 def handle_question(text):
     # TODO: '?\\r\\n\\r\\nViele' -> 'rnrnViele'
     # Fragezeichen wird nicht erkannt, falls Space zu Beginn
@@ -23,6 +24,7 @@ def handle_question(text):
     # MIME-Version: 1.0
     re_q = re.compile('\s([A-Za-z]+)(\?)(?:\s+|$)')
     return re_q.sub(' \\1 FRAGEZEICHEN ', text)
+
 
 def clean_doc(doc):
     tokens = handle_question(doc).split()
@@ -66,7 +68,7 @@ def process_docs(directory, check_start, omit_value):
             continue
         path = directory + '/' + filename
         doc = load_doc(path)
-        tokens = util.clean_doc(doc)
+        tokens = clean_doc(doc)
         documents.append(tokens)
     return documents
 
@@ -88,7 +90,7 @@ def load_clean_dbpedia(is_train):
     else:
         x = dbpedia.test.data
         y = dbpedia.test.target
-    documents = [util.clean_doc(doc[1]) for doc in x]
+    documents = [clean_doc(doc[1]) for doc in x]
     return documents, y
 
 def load_clean_dataset(is_train, dataset=None):
@@ -103,15 +105,25 @@ def load_clean_dataset(is_train, dataset=None):
         labels = [0 for _ in range(len(neg))] + [1 for _ in range(len(pos))]
     return docs, labels
 
-def save_dataset(dataset, filename):
-   dump(dataset, open(filename, 'wb'))
-   print('Saved: %s' % filename)
+
 
 # choose a dataset
 dataset = 'mail'
 train_docs, ytrain = load_clean_dataset(is_train=True, dataset=dataset)
 test_docs, ytest = load_clean_dataset(is_train=False, dataset=dataset)
 print([test_docs[i] for i in range(min(len(test_docs), 10))])
-save_dataset([train_docs, ytrain], 'data/train.pkl')
-save_dataset([test_docs, ytest], 'data/test.pkl')
 
+util.save_dataset([train_docs, ytrain], 'data/train.pkl')
+util.save_dataset([test_docs, ytest], 'data/test.pkl')
+
+trainX, tokenizer, length = util.pre_process(train_docs)
+util.save_dataset([trainX, ytrain], 'data/trainXy.pkl')
+util.save_dataset([tokenizer, length], 'data/tokenizer.pkl')
+
+print('Max document length: %d' % length)
+vocab_size = len(tokenizer.word_index) + 1
+print('Vocabulary size: %d' % vocab_size)
+
+
+testX, tokenizer, length = util.pre_process(test_docs, tokenizer, length)
+util.save_dataset([testX, ytest], 'data/testXy.pkl')

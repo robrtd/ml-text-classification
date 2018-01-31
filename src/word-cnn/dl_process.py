@@ -1,4 +1,4 @@
-START_FROM_SCRATCH = True
+START_FROM_SCRATCH = False
 
 #from keras.utils.vis_utils import plot_model
 from keras.models import Model
@@ -13,6 +13,7 @@ from keras.layers.convolutional import MaxPooling1D
 from keras.layers.merge import concatenate
 
 import util
+from pickle import dump
 
 def define_model(length, vocab_size):
     inputs1 = Input(shape=(length,))
@@ -47,22 +48,14 @@ def define_model(length, vocab_size):
 
     return model
 
-def print_data(lines):
-    for i in range(10):
-        print(len(lines[i]))
-        print(lines[i])
+[trainX, trainLabels] = util.load_dataset('data/trainXy.pkl')
+[tokenizer, length] = util.load_dataset('data/tokenizer.pkl')
 
+util.print_dataset(trainX)
 
-trainLines, trainLabels = util.load_dataset('data/train.pkl')
-trainLines = [' '.join(x) for x in trainLines]
-print(len(trainLines))
-print_data(trainLines)
-tokenizer = util.create_tokenizer(trainLines)
-length = util.max_length(trainLines)
 print('Max document length: %d' % length)
 vocab_size = len(tokenizer.word_index) + 1
 print('Vocabulary size: %d' % vocab_size)
-trainX = util.encode_text(tokenizer, trainLines, length)
 
 if START_FROM_SCRATCH:
     model = define_model(length, vocab_size)
