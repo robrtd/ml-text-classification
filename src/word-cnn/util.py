@@ -11,7 +11,7 @@ def load_dataset(filename):
 
 # fit a tokenizer
 def create_tokenizer(lines):
-    tokenizer = Tokenizer()
+    tokenizer = Tokenizer(num_words=20000)
     tokenizer.fit_on_texts(lines)
     return tokenizer
 
