@@ -11,6 +11,8 @@ from keras.layers import Embedding
 from keras.layers.convolutional import Conv1D
 from keras.layers.convolutional import MaxPooling1D
 from keras.layers.merge import concatenate
+from time import time
+from keras.callbacks import TensorBoard
 
 import util
 from pickle import dump
@@ -62,6 +64,7 @@ if START_FROM_SCRATCH:
 else:
     model = load_model('data/model.h5')
 
-model.fit([trainX, trainX, trainX], trainLabels, epochs=1, batch_size=16)
+tensorboard = TensorBoard(log_dir="logs/{}".format(time()))
+model.fit([trainX, trainX, trainX], trainLabels, epochs=1, batch_size=16, callbacks=[tensorboard])
 model.save('data/model.h5')
 
