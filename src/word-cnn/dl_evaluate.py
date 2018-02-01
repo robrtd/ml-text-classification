@@ -1,23 +1,9 @@
-from pickle import load
-from keras.preprocessing.text import Tokenizer
-from keras.preprocessing.sequence import pad_sequences
 from keras.models import load_model
 import codecs
 
 import util
 
 
-# classify a review as negative or positive
-def predict_sentiment(text, tokenizer, max_length, model):
-    # pre_process text
-    padded, _, _ = util.pre_process([text], tokenizer, max_length)
-    # predict sentiment
-    yhat = model.predict([padded, padded, padded], verbose=1)
-    # retrieve predicted percentage and label
-    percent_pos = yhat[0,0]
-    if round(percent_pos) == 0:
-        return (1-percent_pos), ' NEGATIVE '
-    return percent_pos, ' POSITIVE '
 
 testLines, testLabels = util.load_dataset( 'data/test.pkl' )
 #testLines = [' '.join(x) for x in testLines]
@@ -33,7 +19,7 @@ vocab_size = len(tokenizer.word_index) + 1
 print( ' Vocabulary size: %d ' % vocab_size)
 
 # load the model
-model = load_model( 'data/model.h5' )
+model = load_model( 'data/model-aws-300.h5' )
 
 # evaluate model on test dataset dataset
 _, acc = model.evaluate([testX,testX,testX], testLabels, verbose=0)
@@ -43,7 +29,8 @@ print( ' Test Accuracy: %.2f ' % (acc*100))
 result = {}
 for i in range(len(testX)):
     text = testLines[i]
-    percent, sentiment = predict_sentiment(text, tokenizer, length, model)
+    percent, sentiment = util.predict_sentiment(text, tokenizer, length, model)
+    percent = max(percent)
     result[percent] = [sentiment, text]
 
 for r in sorted(result.keys()):

@@ -1,4 +1,4 @@
-START_FROM_SCRATCH = False
+START_FROM_SCRATCH = True
 
 #from keras.utils.vis_utils import plot_model
 from keras.models import Model
@@ -41,7 +41,7 @@ def define_model(length, vocab_size):
 
     merged = concatenate([flat1, flat2, flat3])
     dense1 = Dense(10, activation='relu')(merged)
-    outputs = Dense(1, activation='sigmoid')(dense1)
+    outputs = Dense(2, activation='sigmoid')(dense1)
 
     model = Model(inputs=[inputs1, inputs2, inputs3], outputs=outputs)
     model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])

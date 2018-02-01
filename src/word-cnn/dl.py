@@ -77,7 +77,7 @@ def load_clean_mails(is_train):
     docs_replied   = process_mails(MAIL_INBOX_, answered=True, is_read=is_train)
     docs_unreplied = process_mails(MAIL_INBOX_, answered=False, is_read=is_train)
     docs = docs_replied + docs_unreplied
-    labels = [1 for _ in range(len(docs_replied))] + [0 for _ in range(len(docs_unreplied))]
+    labels = [[1,0] for _ in range(len(docs_replied))] + [[0,1] for _ in range(len(docs_unreplied))]
     return docs, labels
 
 def load_clean_dbpedia(is_train):

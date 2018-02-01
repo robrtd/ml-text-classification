@@ -53,4 +53,19 @@ def encode_text(tokenizer, lines, length):
     padded = pad_sequences(encoded, maxlen=length, padding='post')
     return padded
 
+
+# classify a text as negative or positive
+def predict_sentiment(text, tokenizer, max_length, model):
+    # pre_process text
+    padded, _, _ = pre_process([text], tokenizer, max_length)
+    # predict sentiment
+    yhat = model.predict([padded, padded, padded], verbose=1)
+    # retrieve predicted percentage and label
+    class_description = 'NEGATIVE'
+    if yhat[0,0] >= 0.5:
+        class_description = 'POSITIVE'
+    return yhat, class_description
+
 pass
+
+
