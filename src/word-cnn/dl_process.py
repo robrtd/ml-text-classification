@@ -62,10 +62,10 @@ print('Vocabulary size: %d' % vocab_size)
 if START_FROM_SCRATCH:
     model = define_model(length, vocab_size)
 else:
-    model = load_model('data/model-aws-600.h5')
+    model = load_model('data/model-aws.h5')
 
 tensorboard = TensorBoard(log_dir="logs/{}".format(time()))
 reduce_lr = ReduceLROnPlateau(monitor='loss', verbose=1)
-model.fit([trainX, trainX, trainX], trainLabels, epochs=300, batch_size=16, callbacks=[tensorboard, reduce_lr])
-model.save('data/model-aws-600.h5')
+model.fit([trainX, trainX, trainX], trainLabels, epochs=300, batch_size=32, callbacks=[tensorboard, reduce_lr])
+model.save('data/model-aws.h5')
 
