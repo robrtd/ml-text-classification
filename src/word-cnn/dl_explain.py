@@ -6,8 +6,10 @@ from keras.preprocessing.sequence import pad_sequences
 from sklearn.pipeline import make_pipeline
 from lime import lime_text
 from lime.lime_text import LimeTextExplainer
+import time, codecs
 import util
 
+startTime=time.clock()
 explainer = LimeTextExplainer(class_names=['POSITIVE', 'NEGATIVE'])
 
 testMatrix, testLabels = util.load_dataset( 'data/test.pkl' )
@@ -23,7 +25,7 @@ vocab_size = len(tokenizer.word_index) + 1
 print( ' Vocabulary size: %d ' % vocab_size)
 
 # load the model
-model = load_model( 'data/model.h5' )
+model = load_model( 'data/model-aws.h5' )
 
 
 class Preprocess:
@@ -59,9 +61,13 @@ pipe = make_pipeline(prepro, model)
 #print(pipe2.predict(testX[0:1]))
 
 
-print(pipe.predict(testLines[0]))
-#percentage, class_description = util.predict_sentiment([testLines[0:1]], tokenizer, length, model)
-exp = explainer.explain_instance(testLines[0], pipe.predict, labels=(0,1), num_features=6)
-print("DocumentId: %d" % 0)
-#print('Probability (POSITIVE): %d' % percentage[0])
-print(exp.as_list())
+for idx in range(10, 20):
+    print(pipe.predict(testLines[idx]))
+    #percentage, class_description = util.predict_sentiment([testLines[0:1]], tokenizer, length, model)
+    exp = explainer.explain_instance(testLines[idx], pipe.predict, labels=(0,1), num_features=6)
+    print("DocumentId: %d" % idx)
+    #print('Probability (POSITIVE): %d' % percentage[0])
+    for x in exp.as_list():
+        print('%s: %8.4f' % (codecs.encode(x[0], 'rot_13'), x[1]))
+
+print('execution-time (cpu): %d' % (time.clock()-startTime))

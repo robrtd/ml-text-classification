@@ -2,17 +2,22 @@ from nltk.corpus import stopwords
 from keras.preprocessing.text import Tokenizer
 from keras.preprocessing.sequence import pad_sequences
 from pickle import load, dump
+import gzip
 import re
 import string
 
+def _get_filename(file_identifier, prefix):
+    return 'data/' + prefix + '_' + file_identifier + '.pkl.gz'
+
 # load a clean dataset
-def load_dataset(filename):
-    return load(open(filename, 'rb'))
+def load_dataset(file_identifier, prefix='data'):
+    filename = _get_filename(file_identifier, prefix)
+    return load(gzip.open(filename, 'rb'))
 
-
-def save_dataset(dataset, filename):
-   dump(dataset, open(filename, 'wb'))
-   print('Saved: %s' % filename)
+def save_dataset(dataset, file_identifier, prefix='data'):
+    filename = _get_filename(file_identifier, prefix)
+    dump(dataset, gzip.open(filename, 'wb'))
+    print('Saved: %s' % filename)
 
 def print_dataset(lines, nr=10):
     for i in range(min(nr, len(lines))):

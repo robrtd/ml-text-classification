@@ -16,6 +16,7 @@ from keras.callbacks import TensorBoard, ReduceLROnPlateau
 
 import util
 from pickle import dump
+from sklearn.model_selection import train_test_split
 
 def define_model(length, vocab_size):
     inputs1 = Input(shape=(length,))
@@ -50,22 +51,29 @@ def define_model(length, vocab_size):
 
     return model
 
-[trainX, trainLabels] = util.load_dataset('data/trainXy.pkl')
-[tokenizer, length] = util.load_dataset('data/tokenizer.pkl')
+#[trainX, trainLabels] = util.load_dataset('data/trainXy.pkl')
+#[tokenizer, length] = util.load_dataset('data/tokenizer.pkl')
 
-util.print_dataset(trainX)
+dataset='trec07'
+[X, y_labels] = util.load_dataset(file_identifier=dataset)
+[tokenizer, length] = util.load_dataset(file_identifier=dataset, prefix='tokenizer')
+
+util.print_dataset(X)
 
 print('Max document length: %d' % length)
 vocab_size = len(tokenizer.word_index) + 1
 print('Vocabulary size: %d' % vocab_size)
 
+trainX, testX, trainLabels, testLabels = train_test_split(X, y_labels, test_size=0.5)
+
 if START_FROM_SCRATCH:
     model = define_model(length, vocab_size)
 else:
-    model = load_model('data/model-aws.h5')
+    model = load_model('data/model-'+dataset+'.h5')
+
+
 
 tensorboard = TensorBoard(log_dir="logs/{}".format(time()))
 reduce_lr = ReduceLROnPlateau(monitor='loss', verbose=1)
-model.fit([trainX, trainX, trainX], trainLabels, epochs=300, batch_size=32, callbacks=[tensorboard, reduce_lr])
-model.save('data/model-aws.h5')
-
+model.fit([trainX, trainX, trainX], trainLabels, epochs=1, batch_size=64, callbacks=[tensorboard, reduce_lr])
+model.save('data/model-'+dataset+'.h5')
