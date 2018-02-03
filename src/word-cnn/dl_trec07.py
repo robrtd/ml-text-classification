@@ -38,8 +38,10 @@ def load_mail_from_file(filename, size=None):
         try:
             #text = file.read(size)
             mail = email.message_from_file(file)
-            header = MailParser.getMessageHeader(mail)
+            header = MailParser.getMinimalMessageHeader(mail)
             body = MailParser.parseMessageParts(mail)
+            if size:
+                body = body[:size] + (body[size:] and 'VeryLongMail')
             email_str = str(header) + "\n" + str(body)
 
         except UnicodeDecodeError: 

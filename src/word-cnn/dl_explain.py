@@ -9,7 +9,6 @@
 from keras.models import load_model
 from keras.preprocessing.sequence import pad_sequences
 from sklearn.pipeline import make_pipeline
-from lime import lime_text
 from lime.lime_text import LimeTextExplainer
 import time, codecs
 import util
@@ -68,13 +67,15 @@ pipe = make_pipeline(prepro, model)
 #print(pipe2.predict(testX[0:1]))
 
 
-for idx in range(10, 20):
+for idx in range(2000, 2100):
+    if testLabels[idx][1] > 0.5:
+        continue
     print("DocumentId: %d" % idx)
     res = pipe.predict(testLines[idx])
     print([round(_, 1) for _ in res[0]])
-    print("Label: " + str(testLines[idx]))
+    print("Label: " + str(testLabels[idx]))
     exp = explainer.explain_instance(testLines[idx], pipe.predict, labels=(0,1), num_features=6)
     for x in exp.as_list():
-        print('%s: %8.4f' % (codecs.encode(x[0], 'rot_13'), x[1]))
+        print('%s: %8.4f' % (x[0], x[1]))
 
 print('execution-time (cpu): %d' % (time.clock()-startTime))

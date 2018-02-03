@@ -3,7 +3,7 @@ import email.header
 class MailParser:
 
     @staticmethod
-    def getMessageHeader(email):
+    def getMinimalMessageHeader(email):
         header_str = ""
         for header in email.keys():
             value = email[header]
@@ -18,8 +18,14 @@ class MailParser:
             if header == "References":
                 header_str = header_str + "MYREF " + MailParser.decodeUtf(email['references']) if email['references'] else 'NONE'
                 header_str = header_str + "\n"
-            header_str = header_str + MailParser.decodeUtf(header) + " " + MailParser.decodeUtf(value) + "\n"
+        return header_str
 
+    @staticmethod
+    def getMessageHeader(email):
+        header_str = MailParser.getMinimalMessageHeader(email)
+        for header in email.keys():
+            value = email[header]
+            header_str = header_str + MailParser.decodeUtf(header) + " " + MailParser.decodeUtf(value) + "\n"
         return header_str
 
     @staticmethod
