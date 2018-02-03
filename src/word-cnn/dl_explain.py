@@ -12,12 +12,13 @@ import util
 startTime=time.clock()
 explainer = LimeTextExplainer(class_names=['POSITIVE', 'NEGATIVE'])
 
-testMatrix, testLabels = util.load_dataset( 'data/test.pkl' )
+dataname='trec07'
+testMatrix, testLabels = util.load_dataset(file_identifier=dataname, prefix='docs')
 testLines = [' '.join(x) for x in testMatrix]
 
-[testX, testLabels] = util.load_dataset('data/testXy.pkl')
+[testX, testLabels] = util.load_dataset(file_identifier=dataname)
 # load tokenizer
-[tokenizer, length] = util.load_dataset('data/tokenizer.pkl')
+[tokenizer, length] = util.load_dataset(file_identifier=dataname, prefix='tokenizer')
 
 print( ' Max document length: %d ' % length)
 # calculate vocabulary size
@@ -25,7 +26,7 @@ vocab_size = len(tokenizer.word_index) + 1
 print( ' Vocabulary size: %d ' % vocab_size)
 
 # load the model
-model = load_model( 'data/model-aws.h5' )
+model = load_model( 'data/model-'+dataname+'.h5' )
 
 
 class Preprocess:

@@ -75,14 +75,14 @@ def load_clean_trec07(index_type='partial'):
 
 
 # choose a dataset
-dataset = 'trec07'
+dataname = 'trec07'
 docs, labels = load_clean_trec07()
 print([docs[i] for i in range(min(len(docs), 10))])
-util.save_dataset([docs, labels], dataset=dataset, prefix='docs')
+util.save_dataset([docs, labels], file_identifier=dataname, prefix='docs')
 
 trainX, tokenizer, length = util.pre_process(docs)
-util.save_dataset([trainX, labels], dataset)
-util.save_dataset([tokenizer, length], dataset, prefix='tokenizer')
+util.save_dataset([trainX, labels], file_identifier=dataname)
+util.save_dataset([tokenizer, length], file_identifier=dataname, prefix='tokenizer')
 
 print('Max document length: %d' % length)
 vocab_size = len(tokenizer.word_index) + 1
