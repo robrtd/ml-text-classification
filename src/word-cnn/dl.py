@@ -94,7 +94,7 @@ def load_clean_dbpedia(is_train):
     return documents, y
 
 def load_clean_dataset(is_train, dataset=None):
-    if dataset == 'mail':
+    if dataset == 'imap-mail':
         return load_clean_mails(is_train)
     if dataset == 'dbpedia':
         return load_clean_dbpedia(is_train)
@@ -108,22 +108,21 @@ def load_clean_dataset(is_train, dataset=None):
 
 
 # choose a dataset
-dataset = 'mail'
-train_docs, ytrain = load_clean_dataset(is_train=True, dataset=dataset)
-test_docs, ytest = load_clean_dataset(is_train=False, dataset=dataset)
+dataname = 'imap-mail'
+train_docs, ytrain = load_clean_dataset(is_train=True, dataset=dataname)
+test_docs, ytest = load_clean_dataset(is_train=False, dataset=dataname)
 print([test_docs[i] for i in range(min(len(test_docs), 10))])
 
-util.save_dataset([train_docs, ytrain], 'data/train.pkl')
-util.save_dataset([test_docs, ytest], 'data/test.pkl')
+util.save_dataset([train_docs, ytrain], file_identifier=dataname, prefix='train')
+util.save_dataset([test_docs, ytest], file_identifier=dataname, prefix='train')
 
 trainX, tokenizer, length = util.pre_process(train_docs)
-util.save_dataset([trainX, ytrain], 'data/trainXy.pkl')
-util.save_dataset([tokenizer, length], 'data/tokenizer.pkl')
+util.save_dataset([trainX, ytrain], file_identifier=dataname, prefix='trainXy')
+util.save_dataset([tokenizer, length], file_identifier=dataname, prefix='tokenizer')
 
 print('Max document length: %d' % length)
 vocab_size = len(tokenizer.word_index) + 1
 print('Vocabulary size: %d' % vocab_size)
 
-
 testX, tokenizer, length = util.pre_process(test_docs, tokenizer, length)
-util.save_dataset([testX, ytest], 'data/testXy.pkl')
+util.save_dataset([testX, ytest], file_identifier=dataname, prefix='testXy')

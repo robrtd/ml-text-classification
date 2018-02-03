@@ -2,8 +2,9 @@
 from nltk.corpus import stopwords
 import string
 import re
-import codecs
+import email
 import util
+from MailParser import MailParser
 
 
 def handle_question(text):
@@ -30,19 +31,25 @@ def clean_doc(doc):
     #tokens = [codecs.encode(word, 'rot_13') for word in tokens]
     return tokens
 
-def load_doc(filename, size=None):
+def load_mail_from_file(filename, size=None):
     # open the file
     text = "ERROR"
     with open(filename, 'r') as file:
-    #with codecs.open(filename,'r',encoding='utf8') as file:
-        # read first N lines
         try:
-            #head = [next(file) for x in range(10)]
-            text = file.read(size)
+            #text = file.read(size)
+            mail = email.message_from_file(file)
+            header = MailParser.getMessageHeader(mail)
+            body = MailParser.parseMessageParts(mail)
+            email_str = str(header) + "\n" + str(body)
+
         except UnicodeDecodeError: 
-            print('Unicode-Error file: %s' % filename)
-            raise
-    return text
+            print('Unicode-Decode-Error file: %s' % filename)
+            raise ValueError('Problem with Unicode-Encoding')
+        except LookupError:
+            print('LookupError Encoding-lookup-Error file: %s' % filename)
+            raise ValueError('Lookup problem with encoding')
+
+    return email_str
 
 def get_label(labelname):
     if labelname.lower()=='ham':
@@ -57,8 +64,9 @@ def process_trec07(index_path):
     for line in lines:
 
         try:
-            mail = load_doc(index_path + '/' + line[1], size=4096)
-        except UnicodeDecodeError:
+            mail = load_mail_from_file(index_path + '/' + line[1], size=4096)
+
+        except ValueError:
             continue
 
         tokens = clean_doc(mail)
