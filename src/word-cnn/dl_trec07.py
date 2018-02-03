@@ -78,6 +78,7 @@ def load_clean_trec07(index_type='partial'):
 dataset = 'trec07'
 docs, labels = load_clean_trec07()
 print([docs[i] for i in range(min(len(docs), 10))])
+util.save_dataset([docs, labels], dataset=dataset, prefix='docs')
 
 trainX, tokenizer, length = util.pre_process(docs)
 util.save_dataset([trainX, labels], dataset)
