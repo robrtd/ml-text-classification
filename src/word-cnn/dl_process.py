@@ -1,4 +1,4 @@
-START_FROM_SCRATCH = False
+START_FROM_SCRATCH = True
 
 #from keras.utils.vis_utils import plot_model
 from keras.models import Model
@@ -60,6 +60,14 @@ model_name=dataset
 [X, y_labels] = util.load_dataset(file_identifier=dataset)
 [tokenizer, length] = util.load_dataset(file_identifier=model_name, prefix='tokenizer')
 
+if length > 2000:
+    # reduce the document length to the first 2000 words
+    old_length = length
+    length = 2000
+    print("Reducing document-length from %d to %d" % (old_length, length))
+    X = X[:, 0:length]
+
+
 util.print_dataset(X)
 
 print('Max document length: %d' % length)
@@ -75,7 +83,7 @@ else:
     model = load_model('data/model-'+model_name+'.h5')
 
 
-tensorboard = TensorBoard(log_dir="logs/{}".format(time()), histogram_freq=1, write_graph=True)
+tensorboard = TensorBoard(log_dir="logs_v2/{}".format(time()), histogram_freq=1, write_graph=True)
 reduce_lr = ReduceLROnPlateau(monitor='loss', verbose=1)
 model.fit([trainX, trainX, trainX], trainLabels, epochs=20, batch_size=128, callbacks=[tensorboard, reduce_lr], validation_data=([testX, testX, testX], testLabels))
 model.save('data/model-'+model_name+'.h5')

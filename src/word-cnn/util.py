@@ -20,6 +20,7 @@ def _get_filename(file_identifier, prefix, path_prefix=None):
 # load a clean dataset
 def load_dataset(file_identifier, prefix='data', path_prefix=None):
     filename = _get_filename(file_identifier, prefix, path_prefix)
+    print("  Loading file: %s" % filename)
     return load(gzip.open(filename, 'rb'))
 
 def save_dataset(dataset, file_identifier, prefix='data'):

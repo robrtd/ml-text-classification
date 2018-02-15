@@ -142,15 +142,20 @@ dataname = 'imap-mail'
 model_dataname = None
 
 if is_training_run:
-   train_docs = []
-   ytrain = []
-   for MAIL_INBOX in ['/home/robert/Tng/mail/INBOX/'\
-       , '/home/robert/Tng/mail/99_READ_10/'\
-       , '/home/robert/Tng/mail/10_PARTNER/']:
-       x_train, y_train = load_clean_dataset(is_train=is_training_run, dataset=dataname, mail_inbox=MAIL_INBOX)
+    train_docs = []
+    ytrain = []
 
-       train_docs += x_train
-       ytrain += y_train
+    # hack to rerun data-generator without parsing mails again...
+    if True:
+        (train_docs, ytrain) = util.load_dataset(file_identifier=dataname, prefix='docs')
+    else:
+        for MAIL_INBOX in ['/home/robert/Tng/mail/INBOX/'\
+           , '/home/robert/Tng/mail/99_READ_10/'\
+           , '/home/robert/Tng/mail/10_PARTNER/']:
+           x_train, y_train = load_clean_dataset(is_train=is_training_run, dataset=dataname, mail_inbox=MAIL_INBOX)
+
+           train_docs += x_train
+           ytrain += y_train
 else:
     MAIL_INBOX='/home/robert/Tng/mail/INBOX/'
     train_docs, ytrain = load_clean_dataset(is_train=is_training_run, dataset=dataname, mail_inbox=MAIL_INBOX)
@@ -160,7 +165,7 @@ if not is_training_run:
     prefix = 'unread'
     model_dataname = dataname
 
-util.save_dataset([train_docs, ytrain], file_identifier=dataname, prefix=prefix)
+#util.save_dataset([train_docs, ytrain], file_identifier=dataname, prefix=prefix)
 
 print(str([(ytrain[i], train_docs[i]) for i in range(min(len(train_docs), 10))]))
 
@@ -169,8 +174,8 @@ if model_dataname:
     trainX, tokenizer, length = util.pre_process(train_docs, tokenizer=tokenizer, length=length)
 else:
     # because of memory-limitations, use a random 30% sample of the data for tokenization only
-    sampleX, _, _, _ = train_test_split(train_docs, ytrain, test_size=0.7) 
-    trainX, tokenizer, length = util.pre_process(sampleX)
+    #sampleX, _, ytrain, _ = train_test_split(train_docs, ytrain, test_size=0.2)
+    trainX, tokenizer, length = util.pre_process(train_docs)
     util.save_dataset([tokenizer, length], file_identifier=dataname, prefix='tokenizer')
 
 util.save_dataset([trainX, ytrain], file_identifier=dataname)
