@@ -1,17 +1,25 @@
 from nltk.corpus import stopwords
-from keras.preprocessing.text import Tokenizer
-from keras.preprocessing.sequence import pad_sequences
+#from keras.preprocessing.text import Tokenizer
+#from keras.preprocessing.sequence import pad_sequences
 from pickle import load, dump
 import gzip
 import re
 import string
 
-def _get_filename(file_identifier, prefix):
-    return 'data/' + prefix + '_' + file_identifier + '.pkl.gz'
+from tensorflow.python.keras._impl.keras.preprocessing.sequence import pad_sequences
+from tensorflow.python.keras._impl.keras.preprocessing.text import Tokenizer
+
+
+def _get_filename(file_identifier, prefix, path_prefix=None):
+    if path_prefix:
+        path_prefix += '/'
+    else:
+        path_prefix = ''
+    return path_prefix + 'data/' + prefix + '_' + file_identifier + '.pkl.gz'
 
 # load a clean dataset
-def load_dataset(file_identifier, prefix='data'):
-    filename = _get_filename(file_identifier, prefix)
+def load_dataset(file_identifier, prefix='data', path_prefix=None):
+    filename = _get_filename(file_identifier, prefix, path_prefix)
     return load(gzip.open(filename, 'rb'))
 
 def save_dataset(dataset, file_identifier, prefix='data'):

@@ -1,4 +1,4 @@
-START_FROM_SCRATCH = True
+START_FROM_SCRATCH = False
 
 #from keras.utils.vis_utils import plot_model
 from keras.models import Model
@@ -15,7 +15,6 @@ from time import time
 from keras.callbacks import TensorBoard, ReduceLROnPlateau
 
 import util
-from pickle import dump
 from sklearn.model_selection import train_test_split
 
 def define_model(length, vocab_size):
@@ -54,26 +53,29 @@ def define_model(length, vocab_size):
 #[trainX, trainLabels] = util.load_dataset('data/trainXy.pkl')
 #[tokenizer, length] = util.load_dataset('data/tokenizer.pkl')
 
-dataset='trec07'
+#dataset='trec07'
+dataset='imap-mail'
+model_name=dataset
+
 [X, y_labels] = util.load_dataset(file_identifier=dataset)
-[tokenizer, length] = util.load_dataset(file_identifier=dataset, prefix='tokenizer')
+[tokenizer, length] = util.load_dataset(file_identifier=model_name, prefix='tokenizer')
 
 util.print_dataset(X)
 
 print('Max document length: %d' % length)
 vocab_size = len(tokenizer.word_index) + 1
-print('Vocabulary size: %d' % vocab_size)
+tokenizer_size = tokenizer.num_words
+print('Tokenizer/Vocabulary size: %d / %d ' % (tokenizer_size, vocab_size))
 
-trainX, testX, trainLabels, testLabels = train_test_split(X, y_labels, test_size=0.5)
+trainX, testX, trainLabels, testLabels = train_test_split(X, y_labels, test_size=0.1)
 
 if START_FROM_SCRATCH:
     model = define_model(length, vocab_size)
 else:
-    model = load_model('data/model-'+dataset+'.h5')
+    model = load_model('data/model-'+model_name+'.h5')
 
 
-
-tensorboard = TensorBoard(log_dir="logs/{}".format(time()))
+tensorboard = TensorBoard(log_dir="logs/{}".format(time()), histogram_freq=1, write_graph=True)
 reduce_lr = ReduceLROnPlateau(monitor='loss', verbose=1)
-model.fit([trainX, trainX, trainX], trainLabels, epochs=1, batch_size=64, callbacks=[tensorboard, reduce_lr])
-model.save('data/model-'+dataset+'.h5')
+model.fit([trainX, trainX, trainX], trainLabels, epochs=20, batch_size=128, callbacks=[tensorboard, reduce_lr], validation_data=([testX, testX, testX], testLabels))
+model.save('data/model-'+model_name+'.h5')
