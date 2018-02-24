@@ -1,8 +1,10 @@
 import email.header
 from email import message_from_bytes
-import string
+from email.utils import getaddresses
+import string, re
 import decryptGnupg
-
+from email_reply_parser import EmailReplyParser
+import pyttsx3 as pyttsx
 
 class MailParser:
 
@@ -11,6 +13,7 @@ class MailParser:
         self.decryptor = None
         if use_gpg:
             self.decryptor = decryptGnupg.Decryptor()
+        self.speech_engine = pyttsx.init()
 
     @staticmethod
     def unifyReferences(ref_str):
@@ -20,25 +23,14 @@ class MailParser:
         return out_string
 
     @staticmethod
-    def getMinimalMessageHeader(email):
-        header_str = ""
-        for header in email.keys():
-            value = email[header]
-            if header == 'From':
-                header_str = header_str + "MYFROM " + MailParser.decodeUtf(email['from']) + "\n"
-            if header == 'To':
-                header_str = header_str + "MYTO " + MailParser.decodeUtf(email['to']) + "\n"
-            if header == 'Cc':
-                header_str = header_str + "MYCC " + MailParser.decodeUtf(email['cc']) + "\n"
-            if header == 'Date':
-                header_str = header_str + "MYDATE" + MailParser.decodeUtf(email['Date']) + "\n"
-            if header == 'Subject':
-                header_str = header_str + "MYSUBJECT " + MailParser.decodeUtf(email['subject']) + "\n"
-            if header == 'References':
-                if email['references']:
-                    ref_str = MailParser.unifyReferences(MailParser.decodeUtf(email['references']))
-                    header_str = header_str + 'MYREF ' + ref_str + "\n"
-        return header_str
+    def parseAddress(email_address_list):
+        #regexStr = r'^([^@]+)@([^@]+)$'
+        address_string = ""
+        address_list = getaddresses(email_address_list)
+        for a in address_list:
+            no_dot = a[1].replace(".", "")
+            address_string += " " + " ".join(no_dot.split("@"))
+        return address_string
 
     @staticmethod
     def getMessageHeader(email):
@@ -64,6 +56,9 @@ class MailParser:
                     body1 = 'ERROR-' + c_charset
             else:
                 body1 = message.get_payload()
+            body1 = EmailReplyParser.parse_reply(body1)
+            #self.speech_engine.say(body1)
+            #self.speech_engine.runAndWait()
             body = body + body1 + "\n"
         elif ctype == 'multipart/mixed':
             # nested multipart-messages are tricky

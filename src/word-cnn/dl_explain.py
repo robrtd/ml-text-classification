@@ -5,6 +5,7 @@
 # [x] limit the number of words used (was already in place)
 # [x] print actual label along with the predicted one
 # [ ] parse e-mails using the logic in MaildirParser
+# [ ] Use adversarial techniques to avoid overfitting: https://arxiv.org/pdf/1605.07725.pdf
 
 import matplotlib.pyplot as plt
 from keras import backend as K
@@ -14,7 +15,9 @@ from keras.preprocessing.sequence import pad_sequences
 from sklearn.pipeline import make_pipeline
 from lime.lime_text import LimeTextExplainer
 import time, codecs
+from random import randrange
 import util
+
 
 class Preprocess:
 
@@ -26,7 +29,8 @@ class Preprocess:
             docs = [docs][0:1]
         encoded = tokenizer.texts_to_sequences(docs)
         padded = pad_sequences(encoded, maxlen=self.maxlen, padding='post')
-        return [padded, padded, padded]
+#        return [padded, padded, padded]
+        return padded
 
     def fit(self):
         return self
@@ -54,9 +58,16 @@ else:
 testMatrix, testLabels = util.load_dataset(file_identifier=test_dataname, prefix=prefix)
 testLines = [' '.join(x) for x in testMatrix]
 
-[testX, testLabels] = util.load_dataset(file_identifier=test_dataname)
+[testX, testLabels] = util.load_dataset(file_identifier=test_dataname, prefix='eval')
 # load tokenizer
 [tokenizer, length] = util.load_dataset(file_identifier=model_name, prefix='tokenizer')
+
+if length > 600:
+    # reduce the document length to the first 600 words
+    old_length = length
+    length = 600
+    print("Reducing document-length from %d to %d" % (old_length, length))
+    testX = testX[:, 0:length]
 
 print( ' Document count: %d ' % len(testMatrix))
 print( ' Max document length: %d ' % length)
@@ -65,7 +76,8 @@ vocab_size = len(tokenizer.word_index) + 1
 print( ' Tokenizer / Vocabulary size: %d / %d' % (tokenizer.num_words, vocab_size))
 
 # load the model
-model = load_model( 'data/model-' + model_name + '.h5')
+model = load_model('data/model-' + model_name + '.h5')
+model.summary()
 
 
 # Prepare the pipeline
@@ -102,33 +114,17 @@ for l in layer_list:
 
     if not isinstance(l, InputLayer):
         plt.title("Layer: %s" % l.name)
-        plt.imshow(l_out[0][0][0:300])
-        plt.show()
+        #plt.imshow(l_out[0][0][0:300])
+        #plt.show()
 
-# plot the layers
-
-
-inp1 = model.get_layer(name='input_1')
-inp3 = model.get_layer(name='input_3')
-embd1 = model.get_layer(name='embedding_1')
-conv1d3 = model.get_layer(name='conv1d_3')
-maxpool3 = model.get_layer(name='max_pooling1d_3')
 prob = {}
-for idx in range(len(testLines)):
+max_doc_explain = 30
+max_doc_explain = len(testLines)
+random_indices = [randrange(0, len(testLines)) for _ in range(max_doc_explain)]
+for idx in random_indices:
     res = pipe.predict(testLines[idx])
     prob[idx] = res[0][0]
 
-    # visualize layer output
-
-    embd1_f = K.function([inp1.input], [embd1.output])
-    conv1d3_f = K.function([inp3.input], [conv1d3.output])
-    extended_input = [K.learning_phase()] + [inp3.input]
-    maxpool3_f = K.function(extended_input, [maxpool3.output])
-
-    reshaped=testX[idx].reshape(1, testX.shape[1])
-    embd1_out = embd1_f([reshaped])
-    conv1d3_out = conv1d3_f([reshaped])
-    maxpool3_out = maxpool3_f([0] + [reshaped])
 
 for idx in sorted(prob, key=prob.get, reverse=True):
     #if testLabels[idx][1] > 0.5:

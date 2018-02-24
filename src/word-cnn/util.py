@@ -1,13 +1,9 @@
 from nltk.corpus import stopwords
-#from keras.preprocessing.text import Tokenizer
-#from keras.preprocessing.sequence import pad_sequences
+import numpy as np
+from keras.preprocessing.text import Tokenizer
+from keras.preprocessing.sequence import pad_sequences
 from pickle import load, dump
 import gzip
-import re
-import string
-
-from tensorflow.python.keras._impl.keras.preprocessing.sequence import pad_sequences
-from tensorflow.python.keras._impl.keras.preprocessing.text import Tokenizer
 
 
 def _get_filename(file_identifier, prefix, path_prefix=None):
@@ -35,27 +31,38 @@ def print_dataset(lines, nr=10):
 
 # fit a tokenizer
 def create_tokenizer(lines):
-    tokenizer = Tokenizer(num_words=20000)
+    num_words_limit = None
+    if max([len(d) for d in lines]) > 30:
+        num_words_limit = 10000
+    tokenizer = Tokenizer(num_words=num_words_limit)
     tokenizer.fit_on_texts(lines)
     return tokenizer
 
 
 # pre-process dataset
 def pre_process(docs, tokenizer=None, length=None):
-    docs = [' '.join(x) for x in docs]
-    print(len(docs))
-    print_dataset(docs)
+    #doc_str_list = []
+    #for doc in docs:
+    #    if isinstance(doc, list):
+    #        doc_str_list.append(' '.join(doc))
+    #    else:
+    #        doc_str_list.append(doc)
+    #print("  Document length: %d" % len(doc_str_list))
+    print("  Document length: %d" % len(docs))
 
     if not tokenizer:
+        #tokenizer = create_tokenizer(doc_str_list)
         tokenizer = create_tokenizer(docs)
 
     if not length:
+        #length = max_length(doc_str_list)
         length = max_length(docs)
+        if length > 600:
+            length = 600
+    #docsX = encode_text(tokenizer, doc_str_list, length)
     docsX = encode_text(tokenizer, docs, length)
 
     return docsX, tokenizer, length
-
-
 
 
 # calculate the maximum document length
@@ -64,7 +71,7 @@ def max_length(lines):
 
 def encode_text(tokenizer, lines, length):
     encoded = tokenizer.texts_to_sequences(lines)
-    padded = pad_sequences(encoded, maxlen=length, padding='post')
+    padded = np.array(pad_sequences(encoded, maxlen=length, padding='post'))
     return padded
 
 
